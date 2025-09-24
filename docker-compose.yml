@@ -1,13 +1,12 @@
-version: "3.8"
-
 services:
   sqlserver_db:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: sqlserver_db
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "TuPasswordSegura"  # use the same as in Dockerfile
+      MSSQL_SA_PASSWORD: "MiPass@1234"  # use the same as in Dockerfile
     ports:
       - "1433:1433"
     volumes:
