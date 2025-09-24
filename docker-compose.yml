@@ -7,8 +7,12 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "MiPass@1234"  # use the same as in Dockerfile
+      # Add specific permissions for mssql user
+      MSSQL_PID: "Developer"
+      MSSQL_AGENT_ENABLED: "true"
     ports:
       - "1433:1433"
     volumes:
-      - ./data:/var/opt/mssql/data   # mount your data folder to the container
+      - ./data:/var/opt/mssql/data:rw   # explicit read-write permissions
+    user: "10001:10001"   # mssql user in container
     restart: unless-stopped
