@@ -15,7 +15,8 @@ pacman::p_load(
   "haven",
   "foreign",
   "lubridate",
-  "readr"
+  "readr",
+  "sf"
 )
 
 # Download data from https://inegi.org.mx/programas/envipe/2025/#microdatos
