@@ -7,3 +7,5 @@
 *.ldf
 *.bin
 .env
+
+*.csv
