@@ -1,8 +1,8 @@
 pacman::p_load("DBI", "odbc")
 
-source("../config.r")
+source("config.R")
 
-DRIVER <- "ODBC Driver 17 for SQL Server"
+DRIVER <- "ODBC Driver 18 for SQL Server"
 
 conn <- dbConnect(
     odbc::odbc(),
