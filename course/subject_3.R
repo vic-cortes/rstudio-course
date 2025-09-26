@@ -30,11 +30,14 @@ df <- read.csv(
 homicidio_doloso <- "Homicidio doloso"
 homicidio_culposo <- "Homicidio culposo"
 
+HOMICIDE_TYPES <- c(homicidio_doloso, homicidio_culposo)
+
 df %>% filter(`Subtipo de delito` == homicidio_doloso) %>% view()
+
 
 # Or filter with multiple conditions
 df %>%
   filter(
-    `Subtipo de delito` %in% c(homicidio_doloso, homicidio_culposo)
+    `Subtipo de delito` %in% HOMICIDE_TYPES
   ) %>%
   view()
