@@ -11,5 +11,8 @@ conn <- dbConnect(
     Database = db_config$database,
     UID = db_config$user,
     PWD = db_config$password,
-    Port = db_config$port
+    Port = db_config$port,
+    # This is required for Driver 18
+    Encrypt = "yes",
+    TrustServerCertificate = "yes"
 )
