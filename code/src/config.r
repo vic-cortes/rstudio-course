@@ -8,6 +8,5 @@ db_config <- list(
     server = Sys.getenv("DB_SERVER", unset = "localhost"),
     database = Sys.getenv("DB_DATABASE", unset = "testdb"),
     user = Sys.getenv("DB_USER", unset = "sa"),
-    port = Sys.getenv("DB_PORT", unset = 1433),
-    database = Sys.getenv("DB_DATABASE", unset = "testdb")
+    port = Sys.getenv("DB_PORT", unset = 1433)
 )

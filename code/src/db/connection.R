@@ -4,7 +4,7 @@ source("../config.r")
 
 DRIVER <- "ODBC Driver 17 for SQL Server"
 
-con <- dbConnect(
+conn <- dbConnect(
     odbc::odbc(),
     Driver = DRIVER,
     Server = db_config$server,
