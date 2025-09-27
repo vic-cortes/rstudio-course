@@ -31,7 +31,7 @@ homicidio_doloso <- "Homicidio doloso"
 homicidio_culposo <- "Homicidio culposo"
 coahuila_state <- "Coahuila de Zaragoza"
 
-HOMICIDE_TYPES <- c(homicidio_doloso, homicidio_culposo)
+HOMICIDE_TYPES <- c(homicidio_doloso)
 
 df %>% filter(`Subtipo de delito` == homicidio_doloso) %>% view()
 
@@ -50,17 +50,47 @@ included_names <- names(df)[8:19]
 
 zfill <- function(number) {
   # Add leading zero if number is less than 10
-  return(ifelse(nchar(number) == 1, paste0("0", number), number))
+  final_number <- ifelse(nchar(number) == 1, paste0("0", number), number)
+  return(final_number)
 }
 
+interest_columns <- c(
+  "Año",
+  "Clave_Ent",
+  "Entidad",
+  "Subtipo de delito",
+  "Anual"
+)
+
 df %>%
-  mutate(anual = rowSums(across(included_names)), na.rm = TRUE) %>%
-  view()
+  mutate(
+    Anual = rowSums(across(included_names)),
+    Clave_Ent = zfill(Clave_Ent)
+  ) %>%
+  select(all_of(interest_columns)) %>%
+  filter(Año == 2024 & `Subtipo de delito` %in% HOMICIDE_TYPES) %>%
+  group_by(Año, Clave_Ent, Entidad) %>%
+  summarize(Homicidios_dolosos = sum(Anual, na.rm = TRUE)) %>%
+  ungroup() %>%
+  bind_rows(summarize(
+    .,
+    Año = 2024,
+    Clave_Ent = "00",
+    Entidad = "Nacional",
+    Homicidios_dolosos = sum(Homicidios_dolosos)
+  ))
+view()
+
 
 # With dplyr
 df %>%
   mutate(
     Clave_Ent = zfill(Clave_Ent),
-    anual = sum(c_across(Enero:Diciembre))
+    Anual = sum(across(included_names), na.rm = TRUE)
   ) %>%
   view()
+
+# %>%
+# select(all_of(interest_columns)) %>%
+# filter(Año == 2024 & `Subtipo de delito` %in% HOMICIDE_TYPES) %>%
+# view()
