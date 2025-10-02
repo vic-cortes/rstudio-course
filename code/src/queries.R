@@ -1,5 +1,8 @@
+library(R6)
+
 library(DBI)
 library(dplyr)
+
 
 response <- dbSendQuery(conn, "SELECT * FROM data WHERE LEN(error) > 0")
 # Create a query by date
