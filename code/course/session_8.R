@@ -44,11 +44,17 @@ font_import()
 
 FILE_NAME <- "db/ElectricCarData_Clean.csv"
 
-color <- list(BLUE = "#1C69A8", RED = "#E7180B", BLACK = "black")
+colors <- list(
+  BLUE = "#1C69A8",
+  RED = "#E7180B",
+  BLACK = "black",
+  WHITE = "white"
+)
 
 df <- read_csv(FILE_NAME)
 
 punto_max <- df |> filter(Range_Km == max(Range_Km))
+punto_min <- df |> filter(Range_Km == min(Range_Km))
 punto_max <- df |> filter(Range_Km > 550)
 
 df |>
@@ -57,25 +63,26 @@ df |>
     method = "lm",
     # formula = y ~ splines::bs(x, 3),
     se = FALSE,
-    color = color$RED
+    color = colors$RED
   ) +
   geom_text(
     data = punto_max,
     aes(label = paste(Brand, "-", Model)),
     vjust = -1,
     hjust = -0.1,
-    color = color$BLACK
+    color = colors$BLACK,
+    fontface = "bold"
   ) +
   annotate(
     "segment",
     x = punto_max$TopSpeed_KmH + 10,
     y = punto_max$Range_Km + 10,
-    xend = punto_max$TopSpeed_KmH + 1,
-    yend = punto_max$Range_Km + 1,
+    xend = punto_max$TopSpeed_KmH + 2,
+    yend = punto_max$Range_Km + 2,
     arrow = arrow(length = unit(0.2, "cm")),
-    color = color$BLACK,
+    color = colors$BLACK,
     size = 1.3
   ) +
-  geom_point(shape = 17, size = 3, color = color$BLUE) +
+  geom_point(shape = 17, size = 3, color = colors$BLUE) +
   scale_x_continuous(breaks = seq(100, 420, 20), limits = c(100, 420)) +
   scale_y_continuous(breaks = seq(50, 1000, 50), limits = c(50, 1000))
