@@ -35,7 +35,8 @@ pacman::p_load(
   "png",
   "grid",
   "ggtext",
-  "extrafont"
+  "extrafont",
+  "glue"
 )
 
 loadfonts(device = "all")
@@ -52,12 +53,21 @@ colors <- list(
   WHITE = "white"
 )
 
+#! We use "glue" package to create HTML formatted strings
 html_info <- list(
-  TITLE = "<b style = 'color:#1C69A8'> Vehículos eléctricos según su </b><b style = 'color:#E7180B'> velocidad máxima</b><b style = 'color:#1C69A8'> y </b><b style = 'color:#E7180B'> autonomía de batería</b>",
-  SUBTITLE = "<i style = 'color:#E7180B'> registros del 2024</i>",
-  CAPTION = "<span style = 'color:#E7180B'> Fuente. Kaggle. EVs - One Electric Vehicle Dataser-Smaller. (2024)</span>",
-  X_LABEL = "<span style = 'color:#E7180B'> Velocidad máxima registrada</span>",
-  Y_LABEL = "<span style = 'color:#E7180B'> Autonomía de la batería</span>"
+  TITLE = glue(
+    "<b style = 'color:{colors$BLUE}'> Vehículos eléctricos según su </b><b style = 'color:{colors$RED}'> velocidad máxima</b><b style = 'color:{colors$BLUE}'> y </b><b style = 'color:{colors$RED}'> autonomía de batería</b>"
+  ),
+  SUBTITLE = glue("<i style = 'color:{colors$RED}'> registros del 2024</i>"),
+  CAPTION = glue(
+    "<span style = 'color:{colors$RED}'> Fuente. Kaggle. EVs - One Electric Vehicle Dataser-Smaller. (2024)</span>"
+  ),
+  X_LABEL = glue(
+    "<span style = 'color:{colors$RED}'> Velocidad máxima registrada</span>"
+  ),
+  Y_LABEL = glue(
+    "<span style = 'color:{colors$RED}'> Autonomía de la batería</span>"
+  )
 )
 
 df <- read_csv(FILE_NAME)
@@ -67,10 +77,13 @@ punto_min <- df |> filter(Range_Km == min(Range_Km))
 punto_max <- df |> filter(Range_Km > 550)
 all_points <- df |> filter(Range_Km > 550 | Range_Km == min(Range_Km))
 
+#! This font family is not working for macOS, select another one
+DEFAULT_FONT <- "Goudy Old Style"
+
+
 create_graph <- function(selected_data) {
   # Creates a scatter plot with a linear model fit and annotations for
   # the maximum range car
-  DEFAULT_FONT <- "Goudy Old Style"
 
   df |>
     ggplot(aes(x = TopSpeed_KmH, y = Range_Km)) +
@@ -80,7 +93,7 @@ create_graph <- function(selected_data) {
       se = FALSE,
       color = colors$RED
     ) +
-    geom_text(
+    geom_richtext(
       data = selected_data,
       aes(label = paste(Brand, "-", Model)),
       vjust = -1,
@@ -106,23 +119,22 @@ create_graph <- function(selected_data) {
       subtitle = html_info$SUBTITLE,
       caption = html_info$CAPTION,
       x = html_info$X_LABEL,
-      y = html_info$Y_LABEL
+      y = html_info$Y_LABEL,
+      color = html_info$COLOR_LABEL
     ) +
     theme(
-      plot.title = element_markdown(size = 16, family = DEFAULT_FONT),
-      plot.subtitle = element_markdown(size = 14, family = DEFAULT_FONT),
+      plot.title = element_markdown(size = 16),
+      plot.subtitle = element_markdown(size = 14),
       plot.caption = element_markdown(
         hjust = 0,
-        size = 12,
-        family = DEFAULT_FONT
+        size = 12
       ),
-      axis.title.x = element_markdown(size = 13, family = DEFAULT_FONT),
-      axis.title.y = element_markdown(size = 13, family = DEFAULT_FONT),
+      axis.title.x = element_markdown(size = 13),
+      axis.title.y = element_markdown(size = 13),
       axis.text = element_text(
         color = colors$BLUE,
         face = "bold",
-        size = 13,
-        family = DEFAULT_FONT
+        size = 13
       ),
       panel.grid.minor = element_blank(),
       panel.grid.major = element_line(
