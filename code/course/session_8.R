@@ -47,8 +47,17 @@ FILE_NAME <- "db/ElectricCarData_Clean.csv"
 colors <- list(
   BLUE = "#1C69A8",
   RED = "#E7180B",
+  GREEN = "#7CB342",
   BLACK = "black",
   WHITE = "white"
+)
+
+html_info <- list(
+  TITLE = "<b style = 'color:#1C69A8'> Vehículos eléctricos según su </b><b style = 'color:#E7180B'> velocidad máxima</b><b style = 'color:#1C69A8'> y </b><b style = 'color:#E7180B'> autonomía de batería</b>",
+  SUBTITLE = "<i style = 'color:#E7180B'> registros del 2024</i>",
+  CAPTION = "<span style = 'color:#E7180B'> Fuente. Kaggle. EVs - One Electric Vehicle Dataser-Smaller. (2024)</span>",
+  X_LABEL = "<span style = 'color:#E7180B'> Velocidad máxima registrada</span>",
+  Y_LABEL = "<span style = 'color:#E7180B'> Autonomía de la batería</span>"
 )
 
 df <- read_csv(FILE_NAME)
@@ -61,6 +70,7 @@ all_points <- df |> filter(Range_Km > 550 | Range_Km == min(Range_Km))
 create_graph <- function(selected_data) {
   # Creates a scatter plot with a linear model fit and annotations for
   # the maximum range car
+  DEFAULT_FONT <- "Goudy Old Style"
 
   df |>
     ggplot(aes(x = TopSpeed_KmH, y = Range_Km)) +
@@ -90,7 +100,38 @@ create_graph <- function(selected_data) {
     ) +
     geom_point(shape = 17, size = 3, color = colors$BLUE) +
     scale_x_continuous(breaks = seq(100, 420, 20), limits = c(100, 420)) +
-    scale_y_continuous(breaks = seq(50, 1000, 50), limits = c(50, 1000))
+    scale_y_continuous(breaks = seq(50, 1000, 50), limits = c(50, 1050)) +
+    labs(
+      title = html_info$TITLE,
+      subtitle = html_info$SUBTITLE,
+      caption = html_info$CAPTION,
+      x = html_info$X_LABEL,
+      y = html_info$Y_LABEL
+    ) +
+    theme(
+      plot.title = element_markdown(size = 16, family = DEFAULT_FONT),
+      plot.subtitle = element_markdown(size = 14, family = DEFAULT_FONT),
+      plot.caption = element_markdown(
+        hjust = 0,
+        size = 12,
+        family = DEFAULT_FONT
+      ),
+      axis.title.x = element_markdown(size = 13, family = DEFAULT_FONT),
+      axis.title.y = element_markdown(size = 13, family = DEFAULT_FONT),
+      axis.text = element_text(
+        color = colors$BLUE,
+        face = "bold",
+        size = 13,
+        family = DEFAULT_FONT
+      ),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(
+        color = alpha(colors$GREEN, 0.3),
+        linetype = "dashed"
+      ),
+      panel.background = element_rect(fill = "white"),
+      axis.ticks = element_line(color = colors$GREEN)
+    )
 }
 
 create_graph(punto_max)
