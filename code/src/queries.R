@@ -32,6 +32,19 @@ get_checksum_data_by_date <- function(start_date, end_date) {
   return(df)
 }
 
+get_data_by_date <- function(start_date, end_date) {
+  # Returns a tibble with data between start_date and end_date
+  query <- sprintf(
+    "SELECT * FROM data WHERE fecha >= '%s' AND fecha <= '%s'",
+    start_date,
+    end_date
+  )
+  response <- dbSendQuery(conn, query)
+  df <- dbFetch(response) |> dplyr::as_tibble()
+  dbClearResult(response)
+  return(df)
+}
+
 get_datos_by_date <- function(start_date, end_date) {
   # Returns a tibble with data between start_date and end_date
   query <- sprintf(
@@ -140,10 +153,33 @@ clean_error <- function(x) {
   return(x)
 }
 
-df |>
+df_errors <- get_data_by_date("2023-08-01", "2023-08-31")
+
+df_errors <- df_errors |>
   mutate(
-    error = clean_error(error)
+    serial = trimws(serial),
+    error = clean_error(error),
+    modelo = trimws(modelo)
   ) |>
-  select(error) |>
-  distinct() |>
-  as.data.frame()
+  select(serial, modelo, error)
+
+# |>
+# select(error) |>
+# distinct() |>
+# as.data.frame()
+
+# Join with df2 by serial
+df_final <- df2 |>
+  inner_join(
+    df_errors,
+    by = c("serial", "modelo"),
+    relationship = "many-to-many"
+  ) |>
+  rename_with(
+    .fn = ~ str_replace(.x, "datos_wide_...", "v"),
+    .cols = contains("datos_wide_...")
+  )
+
+
+# Export to CSV
+readr::write_csv(df_final, "august_2023_data.csv")
