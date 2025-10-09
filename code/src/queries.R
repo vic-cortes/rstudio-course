@@ -14,11 +14,28 @@ response <- dbSendQuery(
   conn,
   "SELECT * FROM data WHERE fecha >= '2023-08-01 00:00:00' AND fecha <= '2023-08-31 23:59:59'"
 )
+response <- dbSendQuery(
+  conn,
+  "SELECT * FROM datos WHERE fechasvr >= '2023-08-01 00:00:00' AND fechasvr <= '2023-08-31 23:59:59'"
+)
 
 get_checksum_data_by_date <- function(start_date, end_date) {
   # Returns a tibble with data between start_date and end_date
   query <- sprintf(
     "SELECT * FROM checksum WHERE fechasvr >= '%s' AND fechasvr <= '%s'",
+    start_date,
+    end_date
+  )
+  response <- dbSendQuery(conn, query)
+  df <- dbFetch(response) |> dplyr::as_tibble()
+  dbClearResult(response)
+  return(df)
+}
+
+get_datos_by_date <- function(start_date, end_date) {
+  # Returns a tibble with data between start_date and end_date
+  query <- sprintf(
+    "SELECT * FROM datos WHERE fechasvr >= '%s' AND fechasvr <= '%s'",
     start_date,
     end_date
   )
@@ -83,6 +100,30 @@ DbDataFetcher <- R6Class(
 df <- dbFetch(response, n = 1000) |> as_tibble()
 
 df |> view()
+
+df2 <- df |>
+  # Primero separar el string en lista de vectores de caracteres (split por coma)
+  mutate(
+    datos_list = stringr::str_split(datos, ",")
+  ) |>
+  # Seleccionar solamente datos_list que tengan 52 elementos
+  filter(purrr::map_int(datos_list, length) == 52) |>
+  # Opcional: si el string tiene comas al principio/final, filtrar los vacíos
+  mutate(
+    datos_list = purrr::map(datos_list, ~ purrr::discard(.x, ~ .x == "")) # elimina elementos vacíos
+  ) |>
+  # Convertir cada lista de caracteres a un tibble de una sola fila (columnas = cada posición)
+  mutate(
+    datos_wide = purrr::map(
+      datos_list,
+      ~ tibble::as_tibble_row(.x, .name_repair = "universal_quiet")
+    )
+  ) |>
+  # Expandir esa columna de data frames en columnas sueltas
+  tidyr::unnest_wider(datos_wide, names_sep = "_") |>
+  # (Opcional) convertir esas columnas nuevas a numéricas
+  mutate(across(contains("..."), ~ as.numeric(.x))) |>
+  select(-datos_list, -datos)
 
 
 clean_error <- function(x) {
