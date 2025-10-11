@@ -1,0 +1,14 @@
+{
+  "editor.tokenColorCustomizations": {
+    "[One Dark Darker]": {
+      "textMateRules": [
+        {
+          "scope": ["variable.function.r"],
+          "settings": {
+            "foreground": "#66D9EF"
+          }
+        }
+      ]
+    }
+  }
+}

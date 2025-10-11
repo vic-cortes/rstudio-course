@@ -64,29 +64,11 @@ DbDataFetcher <- R6Class(
   public = list(
     initialize = function() {},
 
-    get_data_by_date = function(
-      table,
-      date_field,
-      start_date,
-      end_date
-    ) {
-      # Returns a tibble with data between start_date and end_date
-
-      query <- glue::glue(
-        "SELECT * FROM {table} WHERE {date_field} >= '{start_date}' AND {date_field} <= '{end_date}'"
-      )
-
-      response <- dbSendQuery(conn, query)
-      df <- dbFetch(response) |> dplyr::as_tibble()
-      dbClearResult(response)
-      return(df)
-    },
-
     get_checksum_data_by_date = function(start_date, end_date) {
       TABLE <- "checksum"
       DATE_FIELD <- "fechasvr"
 
-      return(self$get_data_by_date(
+      return(private$get_data_by_date(
         TABLE,
         DATE_FIELD,
         start_date,
@@ -98,15 +80,45 @@ DbDataFetcher <- R6Class(
       TABLE <- "data"
       DATE_FIELD <- "fecha"
 
-      return(self$get_data_by_date(
+      return(private$get_data_by_date(
         TABLE,
         DATE_FIELD,
         start_date,
         end_date
       ))
     }
+  ),
+
+  private = list(
+    get_data_by_date = function(
+      table,
+      date_field,
+      start_date,
+      end_date
+    ) {
+      # Returns a tibble with data between start_date and end_date
+
+      SUPPORTED_TABLES <- c("checksum", "data", "datos")
+
+      if (!(table %in% SUPPORTED_TABLES)) {
+        stop("Unsupported table")
+      }
+
+      query <- glue::glue(
+        "SELECT * FROM {table} WHERE {date_field} >= '{start_date}' AND {date_field} <= '{end_date}'"
+      )
+
+      response <- dbSendQuery(conn, query)
+      df <- dbFetch(response) |> dplyr::as_tibble()
+      dbClearResult(response)
+      return(df)
+    }
   )
 )
+
+db_object <- DbDataFetcher$new()
+
+db_object$get_checksum_data_by_date("2023-08-01", "2023-08-31")
 
 
 # Traer, por ejemplo, 1000 filas
