@@ -118,13 +118,8 @@ DbDataFetcher <- R6Class(
 
 db_object <- DbDataFetcher$new()
 
-db_object$get_checksum_data_by_date("2023-08-01", "2023-08-31")
+df <- db_object$get_checksum_data_by_date("2023-08-01", "2023-08-31")
 
-
-# Traer, por ejemplo, 1000 filas
-df <- dbFetch(response, n = 1000) |> as_tibble()
-
-df |> view()
 
 df2 <- df |>
   # Primero separar el string en lista de vectores de caracteres (split por coma)
