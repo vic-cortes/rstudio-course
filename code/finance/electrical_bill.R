@@ -18,9 +18,21 @@ df |> select(fecha, k_wh)
 
 # Jalar el vector de kwh y usa diff para calcular el consumo diario
 # con dplyr
-df <- df |>
+df |>
+  select(fecha, k_wh) |>
   arrange(fecha) |>
   mutate(
     consumo_diario = k_wh - lag(k_wh),
-    costo_diario = costo_total - lag(costo_total)
-  )
+    weekday = weekdays(fecha),
+    month_day = lubridate::day(fecha),
+    month = lubridate::month(fecha, label = TRUE, abbr = TRUE),
+    year = lubridate::year(fecha),
+    week_number = lubridate::isoweek(fecha)
+  ) |>
+  arrange(desc(fecha)) |>
+  group_by(week_number, year) |>
+  summarise(
+    consumo_semanal = sum(consumo_diario, na.rm = TRUE)
+  ) |>
+  ungroup() |>
+  arrange(week_number)
