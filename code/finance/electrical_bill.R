@@ -18,21 +18,43 @@ df |> select(fecha, k_wh)
 
 # Jalar el vector de kwh y usa diff para calcular el consumo diario
 # con dplyr
-df |>
+selected_df <- df |>
   select(fecha, k_wh) |>
   arrange(fecha) |>
   mutate(
-    consumo_diario = k_wh - lag(k_wh),
+    daily_consumption = k_wh - lag(k_wh),
     weekday = weekdays(fecha),
     month_day = lubridate::day(fecha),
     month = lubridate::month(fecha, label = TRUE, abbr = TRUE),
     year = lubridate::year(fecha),
     week_number = lubridate::isoweek(fecha)
   ) |>
+  # Remove all rows with NA in daily_consumption
+  filter(!is.na(daily_consumption)) |>
   arrange(desc(fecha)) |>
-  group_by(week_number, year) |>
+  group_by(week_number, month, year) |>
   summarise(
-    consumo_semanal = sum(consumo_diario, na.rm = TRUE)
+    total_week = sum(daily_consumption, na.rm = TRUE),
+    min_week = min(daily_consumption, na.rm = TRUE),
+    avg_week = mean(daily_consumption, na.rm = TRUE),
+    median_week = median(daily_consumption, na.rm = TRUE),
+    max_week = max(daily_consumption, na.rm = TRUE)
   ) |>
   ungroup() |>
-  arrange(week_number)
+  # Sort by week number descending and year descending
+  arrange(desc(year), desc(week_number))
+
+selected_df |>
+  tidyr::unite(
+    week_year,
+    c("year", "week_number"),
+    sep = "-W",
+    remove = FALSE
+  ) |>
+  arrange(desc(year), desc(week_number)) |>
+  mutate(week_year = factor(week_year, levels = unique(week_year))) |>
+  ggplot(aes(x = total_week, y = week_year)) +
+  geom_col()
+
+selected_df |>
+  tidyr::pivot_longer(cols = -c(week_number, month, year))
