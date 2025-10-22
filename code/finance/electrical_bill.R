@@ -32,7 +32,7 @@ selected_df <- df |>
   # Remove all rows with NA in daily_consumption
   filter(!is.na(daily_consumption)) |>
   arrange(desc(fecha)) |>
-  group_by(week_number, month, year) |>
+  group_by(week_number, year) |>
   summarise(
     total_week = sum(daily_consumption, na.rm = TRUE),
     min_week = min(daily_consumption, na.rm = TRUE),
@@ -45,16 +45,21 @@ selected_df <- df |>
   arrange(desc(year), desc(week_number))
 
 selected_df |>
+  # Combine year and week_number into a new column week_year
   tidyr::unite(
     week_year,
     c("year", "week_number"),
     sep = "-W",
     remove = FALSE
   ) |>
-  arrange(desc(year), desc(week_number)) |>
   mutate(week_year = factor(week_year, levels = unique(week_year))) |>
-  ggplot(aes(x = total_week, y = week_year)) +
-  geom_col()
-
-selected_df |>
-  tidyr::pivot_longer(cols = -c(week_number, month, year))
+  ggplot(aes(
+    x = total_week,
+    y = week_year,
+    fill = factor(year),
+    label = abs(total_week)
+  )) +
+  scale_y_discrete(limits = rev) +
+  geom_col() +
+  geom_text() +
+  theme_minimal()
