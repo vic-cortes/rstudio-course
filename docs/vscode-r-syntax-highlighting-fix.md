@@ -1,6 +1,6 @@
 # Arreglo del resaltado de sintaxis de R en VS Code
 
-Diagnóstico y pasos para replicar, en otro equipo, el arreglo del resaltado de sintaxis (syntax highlighting) de archivos `.R` en VS Code — funciones, variables y constantes en MAYÚSCULAS coloreadas de forma consistente con Python.
+Diagnóstico y pasos para replicar, en otro equipo, el arreglo del resaltado de sintaxis (syntax highlighting) de archivos `.R` en VS Code — funciones, variables y constantes en MAYÚSCULAS coloreadas de forma consistente con Python, más el pipe `|>` y las llamadas a `library()`/`setwd()` igualadas al color de `list`.
 
 Hecho sobre: VS Code 1.130.0 · `REditorSupport.r` 2.8.8 · `REditorSupport.r-syntax` 0.1.4 · tema `One Dark Darker`.
 
@@ -16,19 +16,23 @@ Los archivos `.R` se veían casi monocromáticos: solo los parámetros de las fu
 
 3. **R no reconoce MAYÚSCULAS como constantes.** A diferencia de Python (`constant.other.caps.python`), el grammar de R no tiene ninguna regla para tratar identificadores como `MAX_RETRIES` como constantes. Hubo que agregar esa regla a mano con una extensión local.
 
+4. **`library`/`setwd` comparten scope con todas las demás funciones builtin.** Ambos caen en el mismo scope (`support.function.r`) que `print`, `paste`, `sum`, etc. — no hay forma de darles un color distinto *solo a ellos* vía tema, porque cualquier regla de color para ese scope pinta a todas las funciones builtin por igual. Para que se vean como `list` (que sí tiene su propio scope, `storage.type.r`) hubo que inyectarles ese mismo scope con la extensión local.
+
 ## Cómo quedó coloreado
 
 | Elemento | Scope de TextMate | Color | Origen |
 |---|---|---|---|
 | Llamada a función | `meta.function-call.r` | `#52ADF2` | Override agregado |
-| Función builtin (`library`) | `support.function.r` | `#52ADF2` | Override agregado |
+| Función builtin (`print`, `paste`, etc.) | `support.function.r` | `#52ADF2` | Override agregado |
 | Variable | `source.r` (sin scope propio) | `#EF596F` | Override agregado |
 | Constante en `MAYUSCULA` | `constant.other.caps.r` | `#F5C876` | Extensión local nueva |
+| `list` / `library` / `setwd` | `storage.type.r` | `#D55FDE` | `list` ya funcionaba; `library`/`setwd` — extensión local nueva |
+| Pipe `\|>` | `keyword.operator.pipe.r` | `#D55FDE` | Override agregado |
 | String | `string.quoted.double.r` | `#98C379` | Ya funcionaba |
 | Comentario | `comment.line.number-sign.r` | `#7F848E` | Ya funcionaba |
 | `TRUE` / `FALSE` / `NA` | `constant.language.r` | (sin cambio) | Ya funcionaba |
 
-Los colores de función, variable y constante se eligieron para igualar los que usa Pylance en archivos `.py` con el mismo tema.
+Los colores de función, variable y constante se eligieron para igualar los que usa Pylance en archivos `.py` con el mismo tema. `library`/`setwd`/`|>` se igualaron al morado que ya traía `list` de fábrica (vía la regla genérica `storage` del tema).
 
 ## Cómo replicarlo en otro equipo
 
@@ -58,6 +62,10 @@ Edita (o crea) `.vscode/settings.json` en el proyecto. Si tu tema no se llama ex
         {
           "scope": ["constant.other.caps.r"],
           "settings": { "foreground": "#F5C876" }
+        },
+        {
+          "scope": ["storage.type.r", "keyword.operator.pipe.r"],
+          "settings": { "foreground": "#D55FDE" }
         }
       ]
     }
@@ -67,9 +75,9 @@ Edita (o crea) `.vscode/settings.json` en el proyecto. Si tu tema no se llama ex
 
 Aplica con `Cmd+Shift+P` → *Developer: Reload Window* (basta con esto, es solo configuración).
 
-### 2. Crear la extensión local para constantes en MAYÚSCULAS
+### 2. Crear la extensión local (constantes en MAYÚSCULAS + `library`/`setwd`)
 
-R no tiene ninguna regla nativa para esto, así que se agrega vía una **extensión local mínima** que inyecta un patrón nuevo al grammar de R sin tocar el archivo original de `r-syntax` (así sobrevive a sus actualizaciones).
+R no tiene ninguna regla nativa para esto, así que se agrega vía una **extensión local mínima** que inyecta patrones nuevos al grammar de R sin tocar el archivo original de `r-syntax` (así sobrevive a sus actualizaciones). Esta misma extensión cubre dos cosas: las constantes en MAYÚSCULAS y el reetiquetado de `library`/`setwd` al scope `storage.type.r` (el de `list`).
 
 Crea esta estructura en cualquier carpeta temporal (**no** dentro de `~/.vscode/extensions` — VS Code se pisa a sí mismo si empaquetas e instalas desde ahí):
 
@@ -84,8 +92,8 @@ cd ~/r-caps-constant-src
 {
   "name": "r-caps-constant",
   "displayName": "R ALL_CAPS Constant Highlight (local)",
-  "description": "Adds a constant.other.caps.r scope to ALL_CAPS identifiers in R files, mirroring the Python grammar's convention for module-level constants.",
-  "version": "0.0.4",
+  "description": "Adds a constant.other.caps.r scope to ALL_CAPS identifiers in R files, and a storage.type.r scope to library()/setwd() calls, mirroring conventions the base r-syntax grammar doesn't cover.",
+  "version": "0.0.5",
   "publisher": "local",
   "engines": { "vscode": "^1.75.0" },
   "contributes": {
@@ -110,20 +118,27 @@ cd ~/r-caps-constant-src
     {
       "name": "constant.other.caps.r",
       "match": "\\b(?!(?:TRUE|FALSE|NULL|NA|NA_integer_|NA_real_|NA_complex_|NA_character_|Inf|NaN)\\b)[A-Z][A-Z0-9_]+\\b"
+    },
+    {
+      "name": "storage.type.r",
+      "match": "\\b(?:library|setwd)\\b(?=\\s*\\()"
     }
   ]
 }
 ```
 
-**Por qué así y no de otra forma:** se probó excluir `TRUE`/`FALSE`/`NA` por scope (`-constant`) en vez de por regex, pero no funciona — en el momento en que el tokenizer decide qué regla gana, esas palabras todavía no tienen ningún scope asignado, así que excluir "donde ya hay scope constant" no excluye nada. Por eso la exclusión va directo en el regex con un lookahead negativo, y la prioridad de inyección es `L:` (alta) para que aplique de forma consistente en cualquier posición del archivo, incluyendo asignaciones a nivel raíz.
+**Por qué así y no de otra forma:**
+
+- Se probó excluir `TRUE`/`FALSE`/`NA` por scope (`-constant`) en vez de por regex, pero no funciona — en el momento en que el tokenizer decide qué regla gana, esas palabras todavía no tienen ningún scope asignado, así que excluir "donde ya hay scope constant" no excluye nada. Por eso la exclusión va directo en el regex con un lookahead negativo, y la prioridad de inyección es `L:` (alta) para que aplique de forma consistente en cualquier posición del archivo, incluyendo asignaciones a nivel raíz.
+- Para `library`/`setwd` se reutiliza literalmente el scope `storage.type.r` (el mismo que ya usa `list`) en vez de inventar un scope nuevo y ponerle un color a mano — así quedan automáticamente del mismo color que `list` sin duplicar la definición del color en dos lugares, y si el tema cambia algún día ese color, los tres se actualizan juntos. El lookahead `(?=\s*\()` evita que matchee la palabra si no es una llamada a función (por ejemplo, si alguna vez se usara `library` como nombre de variable).
 
 ### 3. Empaquetar e instalar
 
 ```sh
 npx --yes @vscode/vsce package --allow-missing-repository --no-dependencies \
-  -o ./r-caps-constant-0.0.4.vsix
+  -o ./r-caps-constant-0.0.5.vsix
 
-code --install-extension ./r-caps-constant-0.0.4.vsix
+code --install-extension ./r-caps-constant-0.0.5.vsix
 ```
 
 Cierra VS Code por completo (`Cmd+Q`, no solo la ventana) y vuelve a abrirlo — una extensión nueva solo se detecta al iniciar, "Reload Window" no basta.
@@ -133,8 +148,12 @@ Cierra VS Code por completo (`Cmd+Q`, no solo la ventana) y vuelve a abrirlo —
 `Cmd+Shift+P` → *Developer: Inspect Editor Tokens and Scopes*, y haz clic sobre distintos elementos de un archivo `.R` para confirmar el scope y el color aplicado (campo `foreground` en el popup).
 
 ```r
+library(dplyr)
+setwd("./code/finance/")
+
 greet <- function(name) {
-  message <- paste("Hola,", name)
+  message <- paste("Hola,", name) |>
+    toupper()
   # saluda
   print(message)
 }
@@ -142,7 +161,7 @@ MAX_RETRIES <- 3
 is_ready <- TRUE
 ```
 
-Esperado: `greet`/`paste`/`print` en azul, `message` en rojo, `MAX_RETRIES` en amarillo, `TRUE` sin cambio, el comentario en gris itálica, el string en verde.
+Esperado: `library`/`setwd` en morado (igual que `list`), el pipe `|>` también en ese morado, `greet`/`paste`/`toupper`/`print` en azul, `message` en rojo, `MAX_RETRIES` en amarillo, `TRUE` sin cambio, el comentario en gris itálica, el string en verde.
 
 ## Notas para el futuro
 

@@ -23,6 +23,12 @@
           "settings": {
             "foreground": "#F5C876"
           }
+        },
+        {
+          "scope": ["storage.type.r", "keyword.operator.pipe.r"],
+          "settings": {
+            "foreground": "#D55FDE"
+          }
         }
       ]
     }
