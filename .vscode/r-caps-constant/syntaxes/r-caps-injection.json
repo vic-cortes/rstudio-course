@@ -1,0 +1,14 @@
+{
+  "scopeName": "constant.caps.r.injection",
+  "injectionSelector": "L:source.r - (string, comment, support.constant)",
+  "patterns": [
+    {
+      "name": "constant.other.caps.r",
+      "match": "\\b(?!(?:TRUE|FALSE|NULL|NA|NA_integer_|NA_real_|NA_complex_|NA_character_|Inf|NaN)\\b)[A-Z][A-Z0-9_]+\\b"
+    },
+    {
+      "name": "storage.type.r",
+      "match": "\\b(?:library|setwd)\\b(?=\\s*\\()"
+    }
+  ]
+}

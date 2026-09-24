@@ -13,7 +13,8 @@ This is a personal R workspace combining coursework from a "Bases de datos y té
 - `code/src/` — scripts for querying a SQL Server database (electrical/mechanical equipment error logs), built around `DBI`/`odbc`.
 - `db/`, `data/`, `maps/`, `output/` — local data directories. `data/` holds SQL Server `.mdf`/`.ldf` database files (used by the Docker SQL Server setup below); `db/` holds sample CSV/XLSX inputs used by course exercises. Most data file types (`*.csv`, `*.xlsx`, `*.mdf`, `*.ldf`, `*.bin`) are gitignored — treat anything of these types as local/untracked, not part of the reviewable codebase.
 - `Dockerfile` / `docker-compose.yml` / `attach_db.sh` — spin up a local SQL Server 2022 Linux container and attach the `real_db.mdf`/`.ldf` files from `data/` as a database named `real_db`.
-- `docs/` — standalone reference docs not tied to any script. `docs/vscode-r-syntax-highlighting-fix.md` documents how to fix broken R syntax highlighting in VS Code (stale TextMate scope overrides, plus a local extension for ALL_CAPS-as-constant coloring) — check it before re-diagnosing VS Code R highlighting issues on a new machine.
+- `docs/` — standalone reference docs not tied to any script. `docs/vscode-r-syntax-highlighting-fix.md` documents how to fix broken R syntax highlighting in VS Code (stale TextMate scope overrides, plus a local extension for ALL_CAPS-as-constant and `library`/`setwd` coloring) — check it before re-diagnosing VS Code R highlighting issues on a new machine.
+- `.vscode/r-caps-constant/` — source for a local (unpublished) VS Code extension that adds TextMate scopes the `REditorSupport.r-syntax` grammar doesn't cover. Not auto-installed by cloning the repo — see `docs/vscode-r-syntax-highlighting-fix.md` for how to package (`vsce`) and install it.
 
 ## Running things
 

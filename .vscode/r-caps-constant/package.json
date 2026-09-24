@@ -1,0 +1,19 @@
+{
+  "name": "r-caps-constant",
+  "displayName": "R ALL_CAPS Constant Highlight (local)",
+  "description": "Adds a constant.other.caps.r scope to ALL_CAPS identifiers in R files, and a storage.type.r scope to library()/setwd() calls, mirroring conventions the base r-syntax grammar doesn't cover.",
+  "version": "0.0.5",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "contributes": {
+    "grammars": [
+      {
+        "scopeName": "constant.caps.r.injection",
+        "path": "./syntaxes/r-caps-injection.json",
+        "injectTo": ["source.r"]
+      }
+    ]
+  }
+}

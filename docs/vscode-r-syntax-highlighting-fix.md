@@ -75,16 +75,11 @@ Edita (o crea) `.vscode/settings.json` en el proyecto. Si tu tema no se llama ex
 
 Aplica con `Cmd+Shift+P` → *Developer: Reload Window* (basta con esto, es solo configuración).
 
-### 2. Crear la extensión local (constantes en MAYÚSCULAS + `library`/`setwd`)
+### 2. La extensión local (constantes en MAYÚSCULAS + `library`/`setwd`)
 
 R no tiene ninguna regla nativa para esto, así que se agrega vía una **extensión local mínima** que inyecta patrones nuevos al grammar de R sin tocar el archivo original de `r-syntax` (así sobrevive a sus actualizaciones). Esta misma extensión cubre dos cosas: las constantes en MAYÚSCULAS y el reetiquetado de `library`/`setwd` al scope `storage.type.r` (el de `list`).
 
-Crea esta estructura en cualquier carpeta temporal (**no** dentro de `~/.vscode/extensions` — VS Code se pisa a sí mismo si empaquetas e instalas desde ahí):
-
-```sh
-mkdir -p ~/r-caps-constant-src/syntaxes
-cd ~/r-caps-constant-src
-```
+El código fuente vive en este mismo repo, en [`.vscode/r-caps-constant/`](../.vscode/r-caps-constant/) — al clonar el repo en otro equipo ya lo tienes, solo falta empaquetarlo e instalarlo (paso 3).
 
 `package.json`:
 
@@ -134,11 +129,15 @@ cd ~/r-caps-constant-src
 
 ### 3. Empaquetar e instalar
 
-```sh
-npx --yes @vscode/vsce package --allow-missing-repository --no-dependencies \
-  -o ./r-caps-constant-0.0.5.vsix
+Desde la raíz del repo, ya clonado en el equipo nuevo. **No empaquetes/instales estando dentro de `~/.vscode/extensions`** — VS Code se pisa a sí mismo si lo haces desde ahí (por eso el `.vsix` se genera en `/tmp`, no junto al código fuente):
 
-code --install-extension ./r-caps-constant-0.0.5.vsix
+```sh
+cd .vscode/r-caps-constant
+
+npx --yes @vscode/vsce package --allow-missing-repository --no-dependencies \
+  -o /tmp/r-caps-constant-0.0.5.vsix
+
+code --install-extension /tmp/r-caps-constant-0.0.5.vsix
 ```
 
 Cierra VS Code por completo (`Cmd+Q`, no solo la ventana) y vuelve a abrirlo — una extensión nueva solo se detecta al iniciar, "Reload Window" no basta.
@@ -165,6 +164,6 @@ Esperado: `library`/`setwd` en morado (igual que `list`), el pipe `|>` también 
 
 ## Notas para el futuro
 
-- Si más adelante cambias el regex o los colores de `r-caps-injection.json`, sube el número de `version` en `package.json` antes de reempaquetar — si no, VS Code puede asumir que ya la tiene instalada y no aplicar el cambio.
+- Si más adelante cambias el regex o los colores de `.vscode/r-caps-constant/syntaxes/r-caps-injection.json`, sube el número de `version` en `.vscode/r-caps-constant/package.json` antes de reempaquetar — si no, VS Code puede asumir que ya la tiene instalada y no aplicar el cambio.
 - Si una futura actualización de `REditorSupport.r-syntax` vuelve a cambiar los nombres de scope (como pasó con `variable.function.r` → `meta.function-call.r`), usa *Inspect Editor Tokens and Scopes* para encontrar el nuevo nombre y actualiza el paso 1.
-- Todo esto es configuración de VS Code y una extensión instalada localmente — no vive dentro del repo de R, así que hay que repetir los 4 pasos en cada equipo nuevo.
+- `.vscode/settings.json` y el código fuente de la extensión (`.vscode/r-caps-constant/`) ya viven en el repo, así que clonarlo los trae automáticamente. Lo único que no viaja con el repo es el **paquete instalado en VS Code**: hay que repetir el paso 3 (empaquetar + `code --install-extension`) en cada equipo nuevo, y de nuevo después de `git pull` si `r-caps-constant/` cambió.
