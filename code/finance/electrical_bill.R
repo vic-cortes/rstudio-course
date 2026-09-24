@@ -12,10 +12,6 @@ df <- read_sheet(Config$GOOGLE_SHEET_CFE, sheet = SHEET_NAME) |>
   janitor::clean_names()
 
 
-# Actual analytics
-
-df |> select(fecha, k_wh)
-
 # Jalar el vector de kwh y usa diff para calcular el consumo diario
 # con dplyr
 selected_df <- df |>
