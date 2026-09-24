@@ -1,5 +1,7 @@
 setwd("./code/finance/")
 
+# claude --resume 167e949b-0fd9-4866-89df-3f98aa12a185
+
 library(googlesheets4)
 library(janitor)
 library(dplyr)

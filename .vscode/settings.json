@@ -3,9 +3,25 @@
     "[One Dark Darker]": {
       "textMateRules": [
         {
-          "scope": ["variable.function.r"],
+          "scope": [
+            "variable.function.r",
+            "meta.function-call.r",
+            "support.function.r"
+          ],
           "settings": {
-            "foreground": "#66D9EF"
+            "foreground": "#52ADF2"
+          }
+        },
+        {
+          "scope": ["source.r"],
+          "settings": {
+            "foreground": "#EF596F"
+          }
+        },
+        {
+          "scope": ["constant.other.caps.r"],
+          "settings": {
+            "foreground": "#F5C876"
           }
         }
       ]
